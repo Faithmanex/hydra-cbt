@@ -3,28 +3,69 @@ import { AnswersPanel } from "./AnswersPanel";
 import { Camera, type CaptureResult } from "./Camera";
 import { JobQueue } from "./JobQueue";
 import { Lightbox } from "./Lightbox";
-import { deleteJob, getJobs, postJob, resnapJob, retryJob } from "./api";
+import { clearJobs, deleteJob, getJobs, postJob, resnapJob, retryJob } from "./api";
 import type { Job } from "./types";
 import "./App.css";
 
+const LS_JOBS = "hydra-jobs";
+const LS_THUMBS = "hydra-thumbs";
+const LS_SEQ = "hydra-seq";
+
+function loadLocalJobs(): Job[] {
+  try {
+    const raw = localStorage.getItem(LS_JOBS);
+    return raw ? (JSON.parse(raw) as Job[]) : [];
+  } catch {
+    return [];
+  }
+}
+function loadLocalThumbs(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(LS_THUMBS);
+    return raw ? (JSON.parse(raw) as Record<string, string>) : {};
+  } catch {
+    return {};
+  }
+}
+function loadLocalSeq(): number {
+  try {
+    const raw = localStorage.getItem(LS_SEQ);
+    return raw ? Number(raw) || 0 : 0;
+  } catch {
+    return 0;
+  }
+}
+function saveLocal(jobs: Job[], thumbs: Record<string, string>, seq: number) {
+  try {
+    localStorage.setItem(LS_JOBS, JSON.stringify(jobs));
+    localStorage.setItem(LS_THUMBS, JSON.stringify(thumbs));
+    localStorage.setItem(LS_SEQ, String(seq));
+  } catch {}
+}
+
 export default function App() {
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [thumbs, setThumbs] = useState<Record<string, string>>({});
+  const [jobs, setJobs] = useState<Job[]>(() => loadLocalJobs());
+  const [thumbs, setThumbs] = useState<Record<string, string>>(() => loadLocalThumbs());
   const [banner, setBanner] = useState<string | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [resnapId, setResnapId] = useState<string | null>(null);
-  const jobsRef = useRef<Job[]>([]);
-  const seqRef = useRef(0);
+  const jobsRef = useRef<Job[]>(loadLocalJobs());
+  const seqRef = useRef(loadLocalSeq());
 
   const refresh = useCallback(async () => {
     try {
       const list = await getJobs();
+      const localLen = jobsRef.current.length;
+      // Prevent disappearance: if server is empty but we have cached jobs, keep cached
+      if (list.length === 0 && localLen > 0) {
+        return;
+      }
       jobsRef.current = list;
       setJobs(list);
       const maxSeq = list.reduce((m, j) => Math.max(m, j.seq), 0);
       if (maxSeq > seqRef.current) seqRef.current = maxSeq;
     } catch {
-      setBanner("Cannot reach the server — is `npm run dev` running?");
+      setBanner("Cannot reach the server — is `npm run dev` running? (showing cached answers)");
     }
   }, []);
 
@@ -33,6 +74,30 @@ export default function App() {
     const id = window.setInterval(() => void refresh(), 1500);
     return () => window.clearInterval(id);
   }, [refresh]);
+
+  // Persist to localStorage so answers survive refresh / server restart (fixes disappearing)
+  useEffect(() => {
+    saveLocal(jobs, thumbs, seqRef.current);
+  }, [jobs, thumbs]);
+
+  const handleClear = useCallback(() => {
+    if (jobs.length === 0) return;
+    if (!window.confirm(`Clear all ${jobs.length} questions and answers?`)) return;
+    void clearJobs()
+      .catch(() => {})
+      .finally(() => {
+        jobsRef.current = [];
+        setJobs([]);
+        setThumbs({});
+        seqRef.current = 0;
+        try {
+          localStorage.removeItem(LS_JOBS);
+          localStorage.removeItem(LS_THUMBS);
+          localStorage.removeItem(LS_SEQ);
+        } catch {}
+        setBanner(null);
+      });
+  }, [jobs.length]);
 
   const handleCapture = useCallback((shot: CaptureResult) => {
     seqRef.current += 1;
@@ -129,6 +194,11 @@ export default function App() {
           <span className="stat-chip">
             <b>{jobs.length}</b> snapped
           </span>
+          {jobs.length > 0 && (
+            <button className="btn btn-clear" onClick={handleClear}>
+              Clear
+            </button>
+          )}
         </div>
       </header>
       {banner && (

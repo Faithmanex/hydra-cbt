@@ -118,7 +118,7 @@ export function AnswersPanel({ jobs, thumbs, onRetry, onPreview, onResnap }: Pro
               {job.status === "error" && (
                 <div className="answer-error">
                   <p>Failed: {job.error}</p>
-                  <button className="btn" onClick={() => onRetry(job.id)}>
+                  <button className="btn btn-full" onClick={() => onRetry(job.id)}>
                     Retry
                   </button>
                 </div>
@@ -126,7 +126,7 @@ export function AnswersPanel({ jobs, thumbs, onRetry, onPreview, onResnap }: Pro
               {job.status === "unreadable" && (
                 <div className="answer-error">
                   <p>{job.answer}</p>
-                  <button className="btn" onClick={() => onResnap(job.id)}>
+                  <button className="btn btn-full" onClick={() => onResnap(job.id)}>
                     Re-snap
                   </button>
                 </div>

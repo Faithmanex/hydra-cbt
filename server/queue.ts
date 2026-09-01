@@ -1,5 +1,48 @@
 import { randomUUID } from "crypto";
+import * as fs from "fs";
+import * as path from "path";
 import { answerQuestion, parseAnswerLetter, parseUnreadableReason } from "./ai";
+
+function getDataPath(): string | null {
+  if (process.env.VERCEL) return null;
+  const candidates = [
+    path.resolve(__dirname, "jobs.json"),
+    path.resolve(__dirname, "..", "server", "jobs.json"),
+    path.resolve(process.cwd(), "server", "jobs.json"),
+    path.resolve(process.cwd(), "jobs.json"),
+  ];
+  // Use first writable candidate's directory
+  for (const p of candidates) {
+    try {
+      const dir = path.dirname(p);
+      if (fs.existsSync(dir)) return p;
+    } catch {}
+  }
+  return candidates[0];
+}
+
+function loadFromDisk(): { jobs: Job[]; maxSeq: number } | null {
+  const p = getDataPath();
+  if (!p) return null;
+  try {
+    if (!fs.existsSync(p)) return null;
+    const raw = fs.readFileSync(p, "utf-8");
+    const data = JSON.parse(raw);
+    if (Array.isArray(data?.jobs)) {
+      return { jobs: data.jobs as Job[], maxSeq: Number(data.maxSeq) || 0 };
+    }
+  } catch {}
+  return null;
+}
+
+function saveToDisk(jobs: Job[], maxSeq: number) {
+  const p = getDataPath();
+  if (!p) return;
+  try {
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.writeFileSync(p, JSON.stringify({ jobs, maxSeq }, null, 2), "utf-8");
+  } catch {}
+}
 
 export type JobStatus = "queued" | "processing" | "done" | "error" | "unreadable";
 
@@ -27,6 +70,27 @@ export class JobQueue {
   private pumping = false;
   private maxSeq = 0;
 
+  constructor() {
+    const loaded = loadFromDisk();
+    if (loaded) {
+      this.jobs = loaded.jobs;
+      this.maxSeq = loaded.maxSeq;
+      // Reset any stuck processing jobs to queued on restart
+      for (const j of this.jobs) {
+        if (j.status === "processing") j.status = "queued";
+      }
+      if (this.jobs.length) {
+        console.log(`[queue] Restored ${this.jobs.length} jobs from disk (maxSeq ${this.maxSeq})`);
+        // Resume processing
+        setTimeout(() => void this.pump(), 500);
+      }
+    }
+  }
+
+  private persist() {
+    saveToDisk(this.jobs, this.maxSeq);
+  }
+
   add(imageBase64: string, mimeType: string, seq: number): PublicJob {
     if (this.jobs.some((j) => j.seq === seq)) {
       seq = this.maxSeq + 1;
@@ -41,6 +105,7 @@ export class JobQueue {
       createdAt: Date.now(),
     };
     this.jobs.push(job);
+    this.persist();
     void this.pump();
     return this.toPublic(job);
   }
@@ -55,7 +120,15 @@ export class JobQueue {
     const job = this.jobs.find((j) => j.id === id);
     if (!job || job.status === "processing") return false;
     this.jobs = this.jobs.filter((j) => j.id !== id);
+    this.persist();
     return true;
+  }
+
+  clearAll(): void {
+    // Don't delete processing jobs to avoid race
+    this.jobs = this.jobs.filter((j) => j.status === "processing");
+    this.maxSeq = this.jobs.reduce((m, j) => Math.max(m, j.seq), 0);
+    this.persist();
   }
 
   retry(id: string): PublicJob | null {
@@ -64,6 +137,7 @@ export class JobQueue {
     job.status = "queued";
     job.error = undefined;
     job.processedAt = undefined;
+    this.persist();
     void this.pump();
     return this.toPublic(job);
   }
@@ -78,6 +152,7 @@ export class JobQueue {
     job.answer = undefined;
     job.answerLetter = undefined;
     job.processedAt = undefined;
+    this.persist();
     void this.pump();
     return this.toPublic(job);
   }
@@ -94,6 +169,7 @@ export class JobQueue {
         if (!job) break;
 
         job.status = "processing";
+        this.persist();
         try {
           const answer = await answerQuestion(job.imageBase64, job.mimeType);
           const reason = parseUnreadableReason(answer);
@@ -110,6 +186,7 @@ export class JobQueue {
           job.status = "error";
         }
         job.processedAt = Date.now();
+        this.persist();
         // Per-key RPM is handled in ai.ts (auto-rotate), so no global cooldown here
         if (this.jobs.some((j) => j.status === "queued")) {
           await sleep(10);

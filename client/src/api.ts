@@ -31,6 +31,10 @@ export function deleteJob(id: string): Promise<void> {
   return request<void>(`/api/jobs/${id}`, { method: "DELETE" });
 }
 
+export function clearJobs(): Promise<void> {
+  return request<void>("/api/jobs", { method: "DELETE" });
+}
+
 export function retryJob(id: string): Promise<Job> {
   return request<Job>(`/api/jobs/${id}/retry`, { method: "POST" });
 }

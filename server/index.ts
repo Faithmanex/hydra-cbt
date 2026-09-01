@@ -71,6 +71,11 @@ app.put("/api/jobs/:id", (req, res) => {
   res.json(job);
 });
 
+app.delete("/api/jobs", (_req, res) => {
+  queue.clearAll();
+  res.status(204).end();
+});
+
 app.delete("/api/jobs/:id", (req, res) => {
   if (!queue.remove(req.params.id)) {
     res.status(404).json({ error: "Job not found or currently processing" });
