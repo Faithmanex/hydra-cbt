@@ -27,7 +27,7 @@
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
 }
 
 body {
@@ -36,6 +36,8 @@ body {
   color: var(--text);
   font-family: "Inter", -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 body::before {
@@ -50,12 +52,15 @@ body::before {
 }
 
 .app {
+  width: 100%;
   max-width: 720px;
   margin: 0 auto;
   padding: 12px 12px 28px;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 @media (min-width: 960px) {
   .app {
@@ -189,11 +194,14 @@ body::before {
 
 .layout {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   margin-top: 14px;
   align-items: start;
   flex: 1;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 @media (min-width: 960px) {
   .layout {
@@ -207,6 +215,9 @@ body::before {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 /* ---------- Camera ---------- */
@@ -221,11 +232,122 @@ body::before {
   box-shadow: var(--shadow);
 }
 
+.cam-viewport {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .cam-video {
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
+}
+
+/* Zoom controls overlay */
+.cam-zoom-bar {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(11, 15, 26, 0.82);
+  border: 1px solid var(--border-strong);
+  backdrop-filter: blur(12px);
+  padding: 6px 10px;
+  border-radius: 999px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+}
+
+.resnap-mode .cam-zoom-bar {
+  top: 56px;
+}
+
+.zoom-presets {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.zoom-preset-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.zoom-preset-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.zoom-preset-btn.active {
+  background: var(--accent);
+  color: #04121c;
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(79, 140, 255, 0.5);
+}
+
+.zoom-slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-left: 1px solid var(--border);
+  padding-left: 8px;
+}
+
+.zoom-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 72px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.zoom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  cursor: pointer;
+  box-shadow: 0 0 6px var(--accent-2);
+}
+
+.zoom-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent-2);
+  cursor: pointer;
+  box-shadow: 0 0 6px var(--accent-2);
+}
+
+.zoom-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-2);
+  min-width: 26px;
+  text-align: right;
+  font-family: monospace;
 }
 
 .cam-flash {
@@ -278,28 +400,29 @@ body::before {
   background: #fbbf24;
   color: #1a1206;
   font-weight: 700;
-  font-size: 14px;
-  padding: 14px 16px;
+  font-size: 13.5px;
+  padding: 10px 14px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   animation: slide-in 0.25s ease-out;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .cam-resnap-chip button {
   border: 0;
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.16);
   color: inherit;
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1;
   cursor: pointer;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-weight: 800;
-  min-width: 88px;
-  min-height: 40px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 700;
   flex: 0 0 auto;
+  transition: background 0.15s ease;
 }
 .cam-resnap-chip button:active {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.28);
 }
 
 .cam-wrap.resnap-mode {
@@ -394,6 +517,10 @@ body::before {
   border-radius: var(--radius);
   padding: 12px 14px;
   backdrop-filter: blur(8px);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .strip-label {
@@ -423,6 +550,11 @@ body::before {
   padding: 12px 2px 4px;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
 }
 
 .strip-empty {
@@ -553,6 +685,10 @@ body::before {
   backdrop-filter: blur(8px);
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 @media (min-width: 960px) {
   .answers {
@@ -615,6 +751,10 @@ body::before {
   background: rgba(255, 255, 255, 0.025);
   transition: border-color 0.2s ease;
   animation: card-in 0.3s ease-out;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 @keyframes card-in {
@@ -831,13 +971,29 @@ body::before {
   transform: scale(0.97);
 }
 
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 18px;
+  font-size: 13.5px;
+  border-radius: 8px;
+  margin-top: 6px;
+  cursor: pointer;
+}
+
 .btn-full {
   width: 100%;
-  display: block;
-  padding: 14px 16px;
-  font-size: 15px;
-  border-radius: 10px;
-  margin-top: 4px;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 9px;
+  margin-top: 6px;
 }
 
 .btn-close {
@@ -920,11 +1076,86 @@ body::before {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 24px;
-  padding: 11px 15px;
+  gap: 16px;
+  padding: 10px 14px;
   font-weight: 700;
   font-size: 14px;
   border-bottom: 1px solid var(--border);
+}
+
+.lightbox-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lightbox-zoom-badge {
+  background: rgba(79, 140, 255, 0.15);
+  border: 1px solid rgba(79, 140, 255, 0.35);
+  color: var(--accent);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-family: monospace;
+}
+
+.lightbox-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lightbox-ctrl-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  line-height: 1;
+}
+
+.lightbox-ctrl-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: var(--border-strong);
+}
+
+.lightbox-ctrl-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.lightbox-ctrl-btn.reset {
+  width: auto;
+  padding: 0 9px;
+  font-size: 11.5px;
+  color: var(--accent-2);
+  border-color: rgba(34, 211, 238, 0.3);
+}
+
+.lightbox-ctrl-btn.reset:hover {
+  background: rgba(34, 211, 238, 0.15);
+}
+
+.lightbox-canvas {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  max-width: 95vw;
+  max-height: 76vh;
+  user-select: none;
 }
 
 .lightbox-img {
@@ -934,6 +1165,7 @@ body::before {
   width: auto;
   object-fit: contain;
   background: #000;
+  user-select: none;
 }
 
 .lightbox-hint {
@@ -969,7 +1201,7 @@ body::before {
 
 @media (max-width: 960px) {
   .layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .answers {
