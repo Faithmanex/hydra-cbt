@@ -5,10 +5,11 @@ const PROMPT = [
   "You are an exam assistant. The image contains an exam question.",
   "1) Extract the question and all its options (A, B, C, D...).",
   "2) Determine the correct answer(s). If more than one option is correct, list all letters.",
-  "3) Reply in exactly this format:",
-  "ANSWER: <letter(s), e.g. B or B, D>",
-  "<the full answer text>",
-  "EXPLANATION: <1-2 sentence explanation>",
+  "3) Reply in exactly this format (no extra lines):",
+  "QUESTION: <first 5 words of the question>",
+  "ANSWER: <letter>: <the answer text for that option>",
+  "Example: QUESTION: What is the capital of...",
+  "Example: ANSWER: B: Paris",
   "4) If the image is blurry, cut off, upside down, unreadable, or does not clearly show a question with options, do NOT guess. Reply with exactly:",
   "UNREADABLE: <one-sentence reason>",
   "Be concise. Do not mention the photo quality.",
@@ -172,10 +173,41 @@ function markError(k: KeyState) {
 }
 
 export function parseAnswerLetter(answer: string): string | undefined {
-  const match = answer.match(/^ANSWER:\s*(.+)$/im);
-  if (!match) return undefined;
-  const value = match[1].trim();
-  return value.length > 0 && value.length <= 16 ? value : undefined;
+  // New format: ANSWER: B: Paris  -> letter is B
+  let match = answer.match(/^ANSWER:\s*([A-Za-z]+(?:\s*,\s*[A-Za-z]+)*)\s*:/im);
+  if (match) return match[1].replace(/\s+/g, "").toUpperCase();
+  // Fallback: ANSWER: B  or ANSWER: B, D
+  match = answer.match(/^ANSWER:\s*([A-Za-z,\s]+)$/im);
+  if (match) {
+    const v = match[1].trim().replace(/\s+/g, "");
+    if (v.length > 0 && v.length <= 16) return v.toUpperCase();
+  }
+  // Old broader fallback
+  match = answer.match(/^ANSWER:\s*(.+)$/im);
+  if (match) {
+    const v = match[1].trim().split(":")[0].trim();
+    if (v.length > 0 && v.length <= 16) return v.toUpperCase();
+  }
+  return undefined;
+}
+
+export function parseAnswerContent(answer: string): string | undefined {
+  // Try new format: ANSWER: B: content
+  let match = answer.match(/^ANSWER:\s*[A-Za-z]+(?:\s*,\s*[A-Za-z]+)*\s*:\s*(.+)$/im);
+  if (match) return match[1].trim();
+  // Fallback: second line after ANSWER
+  const lines = answer.split("\n").map((l) => l.trim()).filter(Boolean);
+  const idx = lines.findIndex((l) => /^ANSWER\s*:/i.test(l));
+  if (idx !== -1 && lines[idx + 1] && !/^QUESTION\s*:/i.test(lines[idx + 1]) && !/^UNREADABLE/i.test(lines[idx + 1])) {
+    return lines[idx + 1].trim();
+  }
+  return undefined;
+}
+
+export function parseQuestionSnippet(answer: string): string | undefined {
+  const match = answer.match(/^QUESTION:\s*(.+)$/im);
+  if (match) return match[1].trim();
+  return undefined;
 }
 
 export function parseUnreadableReason(answer: string): string | undefined {

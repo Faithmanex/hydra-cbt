@@ -50,12 +50,18 @@ body::before {
 }
 
 .app {
-  max-width: 1320px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 20px 22px 40px;
+  padding: 12px 12px 28px;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+@media (min-width: 960px) {
+  .app {
+    max-width: 1320px;
+    padding: 20px 22px 40px;
+  }
 }
 
 /* ---------- Header ---------- */
@@ -183,17 +189,24 @@ body::before {
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 420px;
-  gap: 18px;
-  margin-top: 20px;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 14px;
   align-items: start;
   flex: 1;
+}
+@media (min-width: 960px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 420px;
+    gap: 18px;
+    margin-top: 20px;
+  }
 }
 
 .left-col {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 /* ---------- Camera ---------- */
@@ -526,14 +539,19 @@ body::before {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 16px;
-  max-height: calc(100vh - 170px);
-  overflow-y: auto;
-  position: sticky;
-  top: 20px;
+  padding: 14px;
   backdrop-filter: blur(8px);
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+@media (min-width: 960px) {
+  .answers {
+    max-height: calc(100vh - 170px);
+    overflow-y: auto;
+    position: sticky;
+    top: 20px;
+    padding: 16px;
+  }
 }
 
 .answers-header {
@@ -718,6 +736,50 @@ body::before {
 .answer-lead {
   color: var(--accent-2);
   font-weight: 700;
+}
+
+/* --- New minimal mobile UI --- */
+.question-snippet {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #fff;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.question-snippet b {
+  font-weight: 700;
+  color: #fff;
+}
+.question-snippet .ellipsis {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 400;
+  margin-left: 2px;
+}
+.answer-blue {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--accent);
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 500;
+  word-break: break-word;
+}
+.answer-letter-big {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+  flex: 0 0 auto;
+}
+.answer-content {
+  color: var(--accent);
+  font-weight: 600;
+}
+.answer-body {
+  padding-top: 2px;
 }
 
 .answer-pending {
