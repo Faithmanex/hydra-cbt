@@ -88,10 +88,26 @@ export function Camera({ onCapture, onResnap, onCancelResnap, resnapLabel }: Pro
   snapRef.current = snap;
 
   useEffect(() => {
+    const isVolumeUp = (e: KeyboardEvent) => {
+      const key = e.key?.toLowerCase();
+      const code = e.code?.toLowerCase();
+      return (
+        key === "audiovolumeup" ||
+        key === "volumeup" ||
+        code === "audiovolumeup" ||
+        code === "volumeup" ||
+        e.keyCode === 175 ||
+        e.keyCode === 183 ||
+        e.which === 175
+      );
+    };
     const onKey = (e: KeyboardEvent) => {
-      if (e.code !== "Space") return;
+      const isSpace = e.code === "Space" || e.key === " " || e.key === "Spacebar";
+      const isVolUp = isVolumeUp(e);
+      if (!isSpace && !isVolUp) return;
       const target = e.target as HTMLElement | null;
       if (
+        !isVolUp &&
         target &&
         (target.tagName === "BUTTON" ||
           target.tagName === "INPUT" ||
@@ -103,7 +119,12 @@ export function Camera({ onCapture, onResnap, onCancelResnap, resnapLabel }: Pro
       snapRef.current();
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // Some Android browsers fire volume keys as keyup only
+    window.addEventListener("keyup", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keyup", onKey);
+    };
   }, []);
 
   return (
@@ -132,14 +153,14 @@ export function Camera({ onCapture, onResnap, onCancelResnap, resnapLabel }: Pro
           </button>
         </div>
       )}
-      <span className="kbd-hint">SPACE</span>
+      <span className="kbd-hint">SPACE / VOL ↑</span>
       <button
         className={`snap-btn${resnapLabel ? " resnap" : ""}`}
         onClick={snap}
         disabled={!active}
-        aria-label="Snap photo"
+        aria-label="Snap photo (Space or Volume Up)"
       >
-        <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
           <path d="M9 3L7.2 5H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2.2L15 3H9zm3 14a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
         </svg>
       </button>
