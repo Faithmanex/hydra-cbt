@@ -92,9 +92,21 @@ if (clientDist) {
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`Hydra CBT server on http://localhost:${PORT}`);
-  if (!hasApiKey()) {
-    console.warn("WARNING: GEMINI_API_KEY is not set — answers will fail. Add it to .env");
-  }
-});
+export default app;
+
+// Compatibility for Vercel @vercel/node (CommonJS require)
+declare const module: any;
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = app;
+  module.exports.default = app;
+}
+
+// Vercel uses the exported app as a serverless function — don't listen there
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Hydra CBT server on http://localhost:${PORT}`);
+    if (!hasApiKey()) {
+      console.warn("WARNING: GEMINI_API_KEY is not set — answers will fail. Add it to .env");
+    }
+  });
+}
