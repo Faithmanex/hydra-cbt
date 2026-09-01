@@ -3,7 +3,7 @@ import * as path from "path";
 import cors from "cors";
 import express from "express";
 import "./env";
-import { hasApiKey } from "./ai";
+import { hasApiKey, getApiKeyStats } from "./ai";
 import { JobQueue } from "./queue";
 
 const app = express();
@@ -14,7 +14,12 @@ app.use(cors());
 app.use(express.json({ limit: "15mb" }));
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, apiKeyConfigured: hasApiKey() });
+  const stats = getApiKeyStats();
+  res.json({
+    ok: true,
+    apiKeyConfigured: hasApiKey(),
+    keys: stats,
+  });
 });
 
 app.get("/api/jobs", (_req, res) => {

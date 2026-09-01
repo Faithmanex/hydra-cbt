@@ -18,9 +18,6 @@ export interface Job {
 
 export type PublicJob = Omit<Job, "imageBase64">;
 
-const RPM = Number(process.env.GEMINI_RPM ?? 10);
-const COOLDOWN_MS = Math.max(1, Math.round(60000 / RPM));
-
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -113,8 +110,9 @@ export class JobQueue {
           job.status = "error";
         }
         job.processedAt = Date.now();
+        // Per-key RPM is handled in ai.ts (auto-rotate), so no global cooldown here
         if (this.jobs.some((j) => j.status === "queued")) {
-          await sleep(COOLDOWN_MS);
+          await sleep(10);
         }
       }
     } finally {
