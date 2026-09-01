@@ -28,7 +28,7 @@ export function JobQueue({ jobs, thumbs, onDelete, onPreview }: Props) {
         )}
         {jobs.map((job) => (
           <div key={job.id} className={`thumb status-${job.status}`}>
-            <span className="thumb-idx">{job.seq}</span>
+            <span className="thumb-idx">Q{job.seq}</span>
             {thumbs[job.id] ? (
               <button
                 className="thumb-img-btn"

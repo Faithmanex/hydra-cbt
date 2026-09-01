@@ -9,17 +9,14 @@ interface Props {
 }
 
 function getQuestionSnippet(job: Job): string {
-  if (!job.answer) return `Question ${job.seq}`;
-  // Try to parse QUESTION: line from AI response
+  if (!job.answer) return `Q${job.seq}`;
   const m = job.answer.match(/^QUESTION:\s*(.+)$/im);
   if (m) {
     let snippet = m[1].trim();
-    // Take first 5 words
     const words = snippet.split(/\s+/).slice(0, 5).join(" ");
-    return words || `Question ${job.seq}`;
+    return words || `Q${job.seq}`;
   }
-  // Fallback: use job.seq or try to extract from answer first line
-  return `Question ${job.seq}`;
+  return `Q${job.seq}`;
 }
 
 function getAnswerParts(job: Job): { letter: string; text: string } | null {
@@ -74,7 +71,7 @@ export function AnswersPanel({ jobs, thumbs, onRetry, onPreview, onResnap }: Pro
           return (
             <div key={job.id} className={`answer-card status-${job.status}`}>
               <div className="answer-card-head">
-                <span className="answer-num">#{job.seq}</span>
+                <span className="answer-num">Q{job.seq}</span>
                 {thumbs[job.id] && (
                   <button
                     className="answer-thumb-btn"
