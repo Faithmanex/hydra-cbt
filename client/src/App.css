@@ -1,10 +1,10 @@
 :root {
-  --bg: #05060c;
-  --bg-glow-1: rgba(99, 102, 241, 0.16);
-  --bg-glow-2: rgba(34, 211, 238, 0.09);
-  --bg-glow-3: rgba(168, 85, 247, 0.07);
-  --panel: rgba(15, 18, 32, 0.66);
-  --panel-solid: #0b0e18;
+  --bg: #000000;
+  --bg-glow-1: rgba(99, 102, 241, 0.11);
+  --bg-glow-2: rgba(34, 211, 238, 0.06);
+  --bg-glow-3: rgba(168, 85, 247, 0.05);
+  --panel: rgba(10, 11, 18, 0.72);
+  --panel-solid: #07080e;
   --panel-raised: rgba(255, 255, 255, 0.035);
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.16);
