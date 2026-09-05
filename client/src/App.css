@@ -125,13 +125,13 @@ body::after {
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: var(--grad);
+  background: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow:
     0 4px 20px rgba(99, 102, 241, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18);
   flex: 0 0 auto;
 }
 

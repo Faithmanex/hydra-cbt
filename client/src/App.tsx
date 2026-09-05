@@ -169,8 +169,22 @@ export default function App() {
       <header className="topbar">
         <div className="brand">
           <div className="brand-mark">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="#ffffff">
-              <path d="M9 3L7.2 5H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2.2L15 3H9zm3 14a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
+            <svg
+              viewBox="0 0 24 24"
+              width="22"
+              height="22"
+              fill="none"
+              stroke="#ffffff"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <path d="M12 21c0-4-1.2-5.4-4.2-6.8C6.2 13.5 5.4 12 5.4 9.8" />
+              <path d="M12 21c0-4.5 0-7 0-10.2" />
+              <path d="M12 21c0-4 1.2-5.4 4.2-6.8 1.6-.7 2.4-2.2 2.4-4.4" />
+              <circle cx="5.4" cy="7.4" r="1.7" fill="#ffffff" stroke="none" />
+              <circle cx="12" cy="8.2" r="1.7" fill="#ffffff" stroke="none" />
+              <circle cx="18.6" cy="7.4" r="1.7" fill="#ffffff" stroke="none" />
             </svg>
           </div>
           <div>
